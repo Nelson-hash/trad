@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
     const fileInput = document.getElementById('fileInput');
-    const fileName = document.getElementById('fileName');
+    const fileStatus = document.getElementById('fileStatus');
     const translateBtn = document.getElementById('translateBtn');
     const loadingIndicator = document.getElementById('loadingIndicator');
     
@@ -9,9 +9,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // Handle file selection
     fileInput.addEventListener('change', function(e) {
         const file = e.target.files[0];
-        if (!file) return;
+        if (!file) {
+            fileStatus.textContent = "Aucun fichier n'a été sélectionné";
+            translateBtn.disabled = true;
+            return;
+        }
         
-        fileName.textContent = file.name;
+        fileStatus.textContent = "Fichier sélectionné: " + file.name;
         translateBtn.disabled = false;
         
         const reader = new FileReader();
@@ -57,7 +61,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'translated_' + (fileName.textContent || 'file.txt');
+            a.download = 'translated_' + fileInput.files[0].name;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -65,8 +69,9 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Reset the form
             fileInput.value = '';
-            fileName.textContent = '';
+            fileStatus.textContent = "Aucun fichier n'a été sélectionné";
             translateBtn.disabled = true;
+            fileContent = null;
         })
         .catch(error => {
             // Hide loading indicator
