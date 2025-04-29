@@ -1,26 +1,131 @@
+// index.html - Single file app
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Traducteur de Fichier</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Traducteur Français → Anglais</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+        }
+        #status {
+            margin: 15px 0;
+            color: #666;
+        }
+        #translateBtn {
+            padding: 10px 15px;
+            background-color: #4285f4;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #translateBtn:disabled {
+            background-color: #cccccc;
+        }
+        .loading {
+            display: none;
+            margin-top: 15px;
+            text-align: center;
+            color: #666;
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Traducteur Français → Anglais</h1>
-        <div class="upload-container">
-            <input type="file" id="fileInput" accept=".txt" class="hidden">
-            <label for="fileInput" class="upload-button">Choisir un fichier</label>
-            <p id="fileStatus" class="file-status">Aucun fichier n'a été sélectionné</p>
-        </div>
+    <h1>Traducteur Français → Anglais</h1>
+    
+    <input type="file" id="fileInput" accept=".txt">
+    <div id="status">Aucun fichier sélectionné</div>
+    
+    <button id="translateBtn" disabled>Traduire</button>
+    <div id="loading" class="loading">Traduction en cours...</div>
+    
+    <script>
+        // Get DOM elements
+        const fileInput = document.getElementById('fileInput');
+        const status = document.getElementById('status');
+        const translateBtn = document.getElementById('translateBtn');
+        const loading = document.getElementById('loading');
         
-        <button id="translateBtn" disabled>Traduire</button>
+        // File content variable
+        let fileContent = null;
         
-        <div id="loadingIndicator" class="loading hidden">
-            <div class="spinner"></div>
-            <p>Traduction en cours...</p>
-        </div>
-    </div>
-    <script src="script.js"></script>
+        // Handle file selection
+        fileInput.addEventListener('change', function() {
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                status.textContent = 'Fichier sélectionné: ' + file.name;
+                
+                // Read file content
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    fileContent = e.target.result;
+                    translateBtn.disabled = false;
+                };
+                reader.readAsText(file);
+            } else {
+                status.textContent = 'Aucun fichier sélectionné';
+                translateBtn.disabled = true;
+                fileContent = null;
+            }
+        });
+        
+        // Handle translation
+        translateBtn.addEventListener('click', function() {
+            if (!fileContent) return;
+            
+            // Show loading
+            loading.style.display = 'block';
+            translateBtn.disabled = true;
+            
+            // Use LibreTranslate API
+            fetch('https://libretranslate.de/translate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    q: fileContent,
+                    source: 'fr',
+                    target: 'en'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Hide loading
+                loading.style.display = 'none';
+                
+                // Download translated file
+                const translatedText = data.translatedText;
+                const blob = new Blob([translatedText], {type: 'text/plain'});
+                const url = URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'translated_' + fileInput.files[0].name;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                
+                // Reset
+                fileInput.value = '';
+                status.textContent = 'Aucun fichier sélectionné';
+                translateBtn.disabled = true;
+                fileContent = null;
+            })
+            .catch(error => {
+                alert('Erreur: ' + error.message);
+                loading.style.display = 'none';
+                translateBtn.disabled = false;
+            });
+        });
+    </script>
 </body>
+</html>
