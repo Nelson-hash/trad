@@ -80,4 +80,3 @@ document.addEventListener('DOMContentLoaded', function() {
             translateBtn.disabled = false;
         });
     });
-});
