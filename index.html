@@ -1,4 +1,3 @@
-// index.html - Single file app
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -85,19 +84,22 @@
             loading.style.display = 'block';
             translateBtn.disabled = true;
             
-            // Use LibreTranslate API
-            fetch('https://libretranslate.de/translate', {
+            // Use our own serverless function
+            fetch('/.netlify/functions/translate', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    q: fileContent,
-                    source: 'fr',
-                    target: 'en'
+                    text: fileContent
                 })
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Erreur de traduction');
+                }
+                return response.json();
+            })
             .then(data => {
                 // Hide loading
                 loading.style.display = 'none';
