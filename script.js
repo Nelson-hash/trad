@@ -2,7 +2,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const fileInput = document.getElementById('fileInput');
     const fileName = document.getElementById('fileName');
     const translateBtn = document.getElementById('translateBtn');
-    const languageSelect = document.getElementById('languageSelect');
     const loadingIndicator = document.getElementById('loadingIndicator');
     
     let fileContent = null;
@@ -26,8 +25,6 @@ document.addEventListener('DOMContentLoaded', function() {
     translateBtn.addEventListener('click', function() {
         if (!fileContent) return;
         
-        const targetLanguage = languageSelect.value;
-        
         // Show loading indicator
         loadingIndicator.classList.remove('hidden');
         translateBtn.disabled = true;
@@ -37,8 +34,8 @@ document.addEventListener('DOMContentLoaded', function() {
             method: 'POST',
             body: JSON.stringify({
                 q: fileContent,
-                source: 'auto',
-                target: targetLanguage
+                source: 'fr',  // French source
+                target: 'en'   // English target
             }),
             headers: {
                 'Content-Type': 'application/json'
@@ -46,7 +43,7 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(response => {
             if (!response.ok) {
-                throw new Error('Translation failed');
+                throw new Error('La traduction a échoué');
             }
             return response.json();
         })
@@ -74,7 +71,7 @@ document.addEventListener('DOMContentLoaded', function() {
         .catch(error => {
             // Hide loading indicator
             loadingIndicator.classList.add('hidden');
-            alert('Error translating file: ' + error.message);
+            alert('Erreur de traduction: ' + error.message);
             translateBtn.disabled = false;
         });
     });
